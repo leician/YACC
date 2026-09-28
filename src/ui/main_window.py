@@ -45,8 +45,6 @@ class MainWindow(QMainWindow):
         tab_cont = QWidget()
         tab_cont_layout = QHBoxLayout(tab_cont)
         tab_cont_layout.setContentsMargins(0,0,0,0)
-        # tab_cont_layout.addWidget(tabs, 1)
-        # tab_cont_layout.addWidget(apply_btn, 0)
 
         self.setCentralWidget(tabs)
         self.create_crosshair_tab()
