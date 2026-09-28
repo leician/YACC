@@ -1,3 +1,5 @@
+import logging
+
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -8,15 +10,23 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QTabWidget,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 
+from ui.console import ConsoleWidget
+from util.logger import QtLogHandler
+
+
+class GuiLogger(logging.Handler):
+    def emit(self, record):
+        self.edit.textCursor().insertText(self.format(record))
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        self.logger = logging.getLogger(__name__)
 
         self.setWindowTitle("Yet Another Crosshair Changer")
         self.resize(960,540)
@@ -24,6 +34,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('assets/app.ico'))
 
         apply_btn = QPushButton("Apply")
+        apply_btn.clicked.connect(self.write_log)
 
         tabs = QTabWidget()
         tabs.addTab(self.create_crosshair_tab(), "Crosshairs")
@@ -39,6 +50,9 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(tabs)
         self.create_crosshair_tab()
+
+    def write_log(self):
+        self.logger.info("fdhsyu")
 
     def section(self, title, widget = None):
         panel = QWidget()
@@ -56,8 +70,19 @@ class MainWindow(QMainWindow):
         return panel
 
     def create_crosshair_tab(self):
-        logs = QTextEdit()
-        logs.setReadOnly(True)
+        self.log_handler = QtLogHandler()
+        self.log_handler.setFormatter(
+            logging.Formatter(
+                "%(message)s"
+            )
+        )
+        logging.getLogger().addHandler(self.log_handler)
+        logging.getLogger().setLevel(logging.INFO)
+
+        logs = ConsoleWidget()
+        self.log_handler.emitter.message.connect(
+            logs.append_log
+        )
         left_column = self.section("> Logs", logs)
 
         applied_crosshair = self.section("applied crosshair")
