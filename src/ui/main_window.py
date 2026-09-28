@@ -1,16 +1,18 @@
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QMainWindow,
+    QPushButton,
     QSplitter,
     QTabWidget,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
-    QLabel,
-    QMainWindow,
-    QTextEdit,
-    QListWidget,
-    QPushButton
 )
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -21,11 +23,20 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(QSize(960,540))
         self.setWindowIcon(QIcon('assets/app.ico'))
 
+        apply_btn = QPushButton("Apply")
+
         tabs = QTabWidget()
         tabs.addTab(self.create_crosshair_tab(), "Crosshairs")
         tabs.addTab(QWidget(), "Settings")
         tabs.addTab(QWidget(), "About")
-        
+        tabs.setCornerWidget(apply_btn)
+
+        tab_cont = QWidget()
+        tab_cont_layout = QHBoxLayout(tab_cont)
+        tab_cont_layout.setContentsMargins(0,0,0,0)
+        # tab_cont_layout.addWidget(tabs, 1)
+        # tab_cont_layout.addWidget(apply_btn, 0)
+
         self.setCentralWidget(tabs)
         self.create_crosshair_tab()
 
