@@ -1,4 +1,5 @@
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QSplitter,
     QTabWidget,
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Yet Another Crosshair Changer")
         self.resize(960,540)
         self.setMinimumSize(QSize(960,540))
+        self.setWindowIcon(QIcon('assets/app.ico'))
 
         tabs = QTabWidget()
         tabs.addTab(self.create_crosshair_tab(), "Crosshairs")
