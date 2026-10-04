@@ -1,10 +1,12 @@
 from PySide6.QtWidgets import (
+    QDialog,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QStackedWidget,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
@@ -58,7 +60,6 @@ class SettingsMenu(QWidget):
         self.sidebar_layout.addStretch()
 
     def create_page(self):
-        """Create a page whose contents stay anchored to the top."""
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setContentsMargins(10, 10, 10, 10)
@@ -66,7 +67,6 @@ class SettingsMenu(QWidget):
         return page
 
     def add_sidebar_option(self, text, page_index, active=False):
-        """Add a sidebar button that opens its corresponding page."""
         button = QPushButton(text)
         button.setCheckable(True)
         button.setChecked(active)
@@ -83,7 +83,6 @@ class SettingsMenu(QWidget):
             button.setChecked(index == page_index)
 
     def add_setting(self, page, label_text, button_text="Search"):
-        """Add a compact label, text input, and button to a page."""
         setting = QWidget()
         setting_layout = QVBoxLayout(setting)
         setting_layout.setContentsMargins(0, 0, 0, 0)
@@ -95,10 +94,11 @@ class SettingsMenu(QWidget):
         controls.setContentsMargins(0, 0, 0, 0)
         controls.setSpacing(8)
 
-        text_input = QTextEdit()
+        text_input = QLineEdit()
         text_input.setFixedSize(300, 30)
 
         button = QPushButton(button_text)
+        button.clicked.connect(lambda: self.select_directory(text_input))
         controls.addWidget(text_input)
         controls.addWidget(button)
         controls.addStretch()
@@ -108,3 +108,15 @@ class SettingsMenu(QWidget):
         page.layout().addWidget(setting)
 
         return text_input, button
+
+    def update_path(self, obj, text):
+        obj.setText(str(text))
+
+    def select_directory(self, line_edit: QLineEdit):
+        dialog = QFileDialog(None, windowTitle="Select tf/ folder")
+        dialog.accept = lambda: QDialog.accept(dialog)
+        dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
+
+        dialog.exec_()
+        directory = dialog.selectedFiles()
+        line_edit.setText(directory[0])
