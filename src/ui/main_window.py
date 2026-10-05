@@ -45,10 +45,11 @@ class CrosshairPreview(QLabel):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, log_buffer=None):
         super().__init__()
 
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger("YACC")
+        self.log_buffer = log_buffer
 
         self.setWindowTitle("Yet Another Crosshair Changer")
         self.resize(960, 540)
@@ -140,13 +141,16 @@ class MainWindow(QMainWindow):
                 "%(message)s"
             )
         )
-        logging.getLogger().addHandler(self.log_handler)
         logging.getLogger().setLevel(logging.INFO)
 
         logs = ConsoleWidget()
         self.log_handler.emitter.message.connect(
             logs.append_log
         )
+        if self.log_buffer is None:
+            logging.getLogger().addHandler(self.log_handler)
+        else:
+            self.log_buffer.set_target(self.log_handler)
         left_column = self.section("logs", logs)
 
         preview = QWidget()
