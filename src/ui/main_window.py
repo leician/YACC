@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
 from ui.console import ConsoleWidget
 from ui.settings import SettingsMenu
 from util.logger import QtLogHandler
-from util.util import import_xhairs
+from util.util import EmptyName, import_xhairs
 
 
 class CrosshairPreview(QLabel):
@@ -112,7 +112,11 @@ class MainWindow(QMainWindow):
 
     def add_crosshairs(self):
         def accept(name, path, dialog):
-            import_xhairs(name, path)
+            try:
+                import_xhairs(name, path)
+            except (OSError, FileExistsError, EmptyName) as err:
+                QMessageBox.warning(self, "Error", str(err))
+                return
             dialog.accept()
 
         dialog = QDialog(self)
@@ -202,14 +206,14 @@ class MainWindow(QMainWindow):
         preview_layout.addWidget(preview_label)
 
         weapon_selector = QComboBox()
-        weapon_selector.addItem("select weapon")
+        weapon_selector.addItem("Select weapon")
         weapon_selector.addItems(["Scattergun", "Rocket Launcher", "Pistol"])
 
         crosshair_type_selector = QComboBox()
-        crosshair_type_selector.addItem("select category")
+        crosshair_type_selector.addItem("Select set")
 
         crosshair_selector = QComboBox()
-        crosshair_selector.addItem("pick crosshair")
+        crosshair_selector.addItem("Pick crosshair")
         crosshair_selector.addItems(["Wings", "X", "Cross"])
 
         selector_width = max(
