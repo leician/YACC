@@ -1,3 +1,5 @@
 pyside6
 vtf2img
+tomli
+tomli-w
 platformdirs
