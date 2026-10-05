@@ -1,3 +1,5 @@
+import logging
+
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
@@ -11,10 +13,18 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.config import Config
+
 
 class SettingsMenu(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.logger = logging.getLogger("YACC")
+
+        self.config_manager = Config()
+        self.config = self.config_manager.read_config()
+        self.path = self.config["general"]["tf_path"]
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -59,6 +69,14 @@ class SettingsMenu(QWidget):
         self.add_sidebar_option("Misc.", 1)
         self.sidebar_layout.addStretch()
 
+        footer = QHBoxLayout()
+        footer.setContentsMargins(15, 0, 15, 12)
+        footer.addStretch()
+        self.apply_button = QPushButton("Apply")
+        self.apply_button.clicked.connect(self.apply_settings)
+        footer.addWidget(self.apply_button)
+        root.addLayout(footer)
+
     def create_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
@@ -95,6 +113,7 @@ class SettingsMenu(QWidget):
         controls.setSpacing(8)
 
         text_input = QLineEdit()
+        text_input.setText(self.path)
         text_input.setFixedSize(300, 30)
 
         button = QPushButton(button_text)
@@ -111,6 +130,13 @@ class SettingsMenu(QWidget):
 
     def update_path(self, obj, text):
         obj.setText(str(text))
+
+    def apply_settings(self):
+        selected_path = self.path_input.text()
+        self.config_manager.write_config("general", "tf_path", selected_path)
+        self.config["general"]["tf_path"] = selected_path
+        self.path = selected_path
+        self.logger.info(f"Set tf/ path to {selected_path}")
 
     def select_directory(self, line_edit: QLineEdit):
         dialog = QFileDialog(None, windowTitle="Select tf/ folder")

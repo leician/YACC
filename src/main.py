@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QApplication
 from ui.main_window import MainWindow
 from ui.style import stylesheet
 from util.logger import BufferedLogHandler
-from util.util import create_cfg_dir
+from util.util import create_dirs
 
 if __name__ == "__main__":
     root_logger = logging.getLogger()
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     log_buffer = BufferedLogHandler()
     root_logger.addHandler(log_buffer)
 
-    path = create_cfg_dir()
+    path = create_dirs()
     
     app = QApplication(sys.argv)
     window = MainWindow(log_buffer)
