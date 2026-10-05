@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         crosshair_selector.addItems(["Wings", "X", "Cross"])
 
         add_crosshairs = QPushButton("add")
+        add_all_crosshairs = QPushButton("add to all")
         loaded_crosshairs = QListWidget()
         loaded_crosshairs.addItems(["Wings", "X", "Cross"])
 
@@ -170,6 +171,7 @@ class MainWindow(QMainWindow):
         controls.addWidget(weapon_selector, 4)
         controls.addWidget(crosshair_selector, 3)
         controls.addWidget(add_crosshairs, 1)
+        controls.addWidget(add_all_crosshairs, 2)
 
         lower_area = QWidget()
         lower_layout = QVBoxLayout(lower_area)
