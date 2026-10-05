@@ -5,9 +5,11 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListWidget,
     QMainWindow,
     QMenu,
@@ -22,6 +24,7 @@ from PySide6.QtWidgets import (
 from ui.console import ConsoleWidget
 from ui.settings import SettingsMenu
 from util.logger import QtLogHandler
+from util.util import import_xhairs
 
 
 class CrosshairPreview(QLabel):
@@ -65,7 +68,8 @@ class MainWindow(QMainWindow):
             QToolButton.ToolButtonPopupMode.InstantPopup
         )
         options_menu = QMenu(options_button)
-        options_menu.addAction("Settings...", self.open_settings)
+        options_menu.addAction("Settings", self.open_settings)
+        options_menu.addAction("Add crosshairs", self.add_crosshairs)
         options_button.setMenu(options_menu)
 
         about_button = QToolButton()
@@ -105,6 +109,45 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(SettingsMenu(dialog))
         dialog.exec()
+
+    def add_crosshairs(self):
+        def accept(name, path, dialog):
+            import_xhairs(name, path)
+            dialog.accept()
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add crosshairs")
+        dialog.resize(480, 140)
+
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("Directory"))
+
+        directory_row = QHBoxLayout()
+        directory_input = QLineEdit()
+        browse_button = QPushButton("Browse...")
+        browse_button.clicked.connect(
+            lambda: self.select_crosshair_directory(directory_input)
+        )
+        directory_row.addWidget(directory_input, stretch=1)
+        directory_row.addWidget(browse_button)
+        layout.addLayout(directory_row)
+
+        set_name = QLineEdit()
+        layout.addWidget(QLabel("Crosshair Set Name"))
+        layout.addWidget(set_name)
+        add_button = QPushButton("Add")
+        add_button.clicked.connect(
+            lambda: accept(set_name.text(), directory_input.text(), dialog)
+        )
+        layout.addWidget(add_button, alignment=Qt.AlignmentFlag.AlignRight)
+        dialog.exec()
+
+    def select_crosshair_directory(self, line_edit):
+        directory = QFileDialog.getExistingDirectory(
+            self, "Select crosshair folder", line_edit.text()
+        )
+        if directory:
+            line_edit.setText(directory)
 
     def open_about(self):
         QMessageBox.about(
@@ -155,27 +198,59 @@ class MainWindow(QMainWindow):
 
         preview = QWidget()
         preview_layout = QVBoxLayout(preview)
-        preview_label = CrosshairPreview("assets/placeholder.png")
+        preview_label = CrosshairPreview("assets/placeholder.jpg")
         preview_layout.addWidget(preview_label)
 
         weapon_selector = QComboBox()
         weapon_selector.addItem("select weapon")
         weapon_selector.addItems(["Scattergun", "Rocket Launcher", "Pistol"])
 
+        crosshair_type_selector = QComboBox()
+        crosshair_type_selector.addItem("select category")
+
         crosshair_selector = QComboBox()
         crosshair_selector.addItem("pick crosshair")
         crosshair_selector.addItems(["Wings", "X", "Cross"])
 
+        selector_width = max(
+            weapon_selector.sizeHint().width(),
+            crosshair_type_selector.sizeHint().width(),
+            crosshair_selector.sizeHint().width(),
+        ) + 8
+        for selector in (
+            weapon_selector,
+            crosshair_type_selector,
+            crosshair_selector,
+        ):
+            selector.setFixedWidth(selector_width)
+
         add_crosshairs = QPushButton("add")
         add_all_crosshairs = QPushButton("add to all")
+        button_width = max(
+            add_crosshairs.sizeHint().width(),
+            add_all_crosshairs.sizeHint().width(),
+        )
+        add_crosshairs.setFixedWidth(button_width)
+        add_all_crosshairs.setFixedWidth(button_width)
         loaded_crosshairs = QListWidget()
         loaded_crosshairs.addItems(["Wings", "X", "Cross"])
 
+        crosshair_selectors = QVBoxLayout()
+        crosshair_selectors.addWidget(crosshair_type_selector)
+        crosshair_selectors.addWidget(crosshair_selector)
+
+        crosshair_actions = QVBoxLayout()
+        crosshair_actions.addWidget(
+            add_crosshairs, alignment=Qt.AlignmentFlag.AlignLeft
+        )
+        crosshair_actions.addWidget(
+            add_all_crosshairs, alignment=Qt.AlignmentFlag.AlignLeft
+        )
+
         controls = QHBoxLayout()
-        controls.addWidget(weapon_selector, 4)
-        controls.addWidget(crosshair_selector, 3)
-        controls.addWidget(add_crosshairs, 1)
-        controls.addWidget(add_all_crosshairs, 2)
+        controls.addWidget(weapon_selector, 1, Qt.AlignmentFlag.AlignBottom)
+        controls.addLayout(crosshair_selectors, 3)
+        controls.addLayout(crosshair_actions, 1)
 
         lower_area = QWidget()
         lower_layout = QVBoxLayout(lower_area)

@@ -6,6 +6,16 @@ from pathlib import Path
 
 logger = logging.getLogger("YACC")
 
+def import_xhairs(name, src):
+    pltfrm = platform.system()
+    if pltfrm == "Linux":
+        path = os.path.join(os.path.expanduser("~"), ".config/YACC/crosshairs")
+    elif pltfrm == "Windows":
+        path = os.path.join(os.getenv("LOCALAPPDATA", "YACC/crosshairs"))
+
+    os.makedirs(os.path.join(path, name), exist_ok=True)
+    shutil.copytree(src, os.path.join(path, name), dirs_exist_ok=True)
+
 def copy_cfg(path):
     def_cfg = Path("./config/config.default.toml")
     
