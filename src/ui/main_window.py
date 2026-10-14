@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -24,7 +25,7 @@ from PySide6.QtWidgets import (
 from ui.console import ConsoleWidget
 from ui.settings import SettingsMenu
 from util.logger import QtLogHandler
-from util.util import EmptyName, import_xhairs
+from util.util import EmptyName, get_sets, get_xhairs, import_xhairs
 
 
 class CrosshairPreview(QLabel):
@@ -117,6 +118,8 @@ class MainWindow(QMainWindow):
             except (OSError, FileExistsError, EmptyName) as err:
                 QMessageBox.warning(self, "Error", str(err))
                 return
+            self.crosshair_type_selector.addItem(name)
+            self.crosshair_type_selector.setCurrentText(name)
             dialog.accept()
 
         dialog = QDialog(self)
@@ -130,7 +133,7 @@ class MainWindow(QMainWindow):
         directory_input = QLineEdit()
         browse_button = QPushButton("Browse...")
         browse_button.clicked.connect(
-            lambda: self.select_crosshair_directory(directory_input)
+            lambda: self.select_crosshair_directory(directory_input, set_name)
         )
         directory_row.addWidget(directory_input, stretch=1)
         directory_row.addWidget(browse_button)
@@ -146,12 +149,27 @@ class MainWindow(QMainWindow):
         layout.addWidget(add_button, alignment=Qt.AlignmentFlag.AlignRight)
         dialog.exec()
 
-    def select_crosshair_directory(self, line_edit):
+    def select_crosshair_directory(self, xhair_path, xhair_name):
         directory = QFileDialog.getExistingDirectory(
-            self, "Select crosshair folder", line_edit.text()
+            self, "Select crosshair folder", xhair_path.text()
         )
+        
         if directory:
-            line_edit.setText(directory)
+            xhair_path.setText(directory)
+            xhair_name.setText(Path(directory).name)
+
+    def update_crosshair_selector(self, set_name):
+        self.crosshair_selector.clear()
+        if not set_name:
+            return
+
+        try:
+            self.crosshair_selector.addItems(get_xhairs(set_name))
+        except OSError as err:
+            self.logger.error(
+                "Could not load crosshairs from set %s: %s", set_name, err
+            )
+            QMessageBox.warning(self, "Error", str(err))
 
     def open_about(self):
         QMessageBox.about(
@@ -209,22 +227,27 @@ class MainWindow(QMainWindow):
         weapon_selector.addItem("Select weapon")
         weapon_selector.addItems(["Scattergun", "Rocket Launcher", "Pistol"])
 
-        crosshair_type_selector = QComboBox()
-        crosshair_type_selector.addItem("Select set")
+        self.crosshair_type_selector = QComboBox()
+        self.crosshair_type_selector.setPlaceholderText("Select set")
+        sets = get_sets()
+        self.crosshair_type_selector.addItems(sets)
 
-        crosshair_selector = QComboBox()
-        crosshair_selector.addItem("Pick crosshair")
-        crosshair_selector.addItems(["Wings", "X", "Cross"])
+        self.crosshair_selector = QComboBox()
+        self.crosshair_selector.setPlaceholderText("Pick crosshair")
+        self.crosshair_type_selector.currentTextChanged.connect(
+            self.update_crosshair_selector
+        )
+        self.update_crosshair_selector(self.crosshair_type_selector.currentText())
 
         selector_width = max(
             weapon_selector.sizeHint().width(),
-            crosshair_type_selector.sizeHint().width(),
-            crosshair_selector.sizeHint().width(),
+            self.crosshair_type_selector.sizeHint().width(),
+            self.crosshair_selector.sizeHint().width(),
         ) + 8
         for selector in (
             weapon_selector,
-            crosshair_type_selector,
-            crosshair_selector,
+            self.crosshair_type_selector,
+            self.crosshair_selector,
         ):
             selector.setFixedWidth(selector_width)
 
@@ -240,8 +263,8 @@ class MainWindow(QMainWindow):
         loaded_crosshairs.addItems(["Wings", "X", "Cross"])
 
         crosshair_selectors = QVBoxLayout()
-        crosshair_selectors.addWidget(crosshair_type_selector)
-        crosshair_selectors.addWidget(crosshair_selector)
+        crosshair_selectors.addWidget(self.crosshair_type_selector)
+        crosshair_selectors.addWidget(self.crosshair_selector)
 
         crosshair_actions = QVBoxLayout()
         crosshair_actions.addWidget(

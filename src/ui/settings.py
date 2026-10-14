@@ -100,7 +100,7 @@ class SettingsMenu(QWidget):
         for index, button in enumerate(self._nav_buttons):
             button.setChecked(index == page_index)
 
-    def add_setting(self, page, label_text, button_text="Search"):
+    def add_setting(self, page, label_text, button_text="Browse..."):
         setting = QWidget()
         setting_layout = QVBoxLayout(setting)
         setting_layout.setContentsMargins(0, 0, 0, 0)
